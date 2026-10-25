@@ -1,5 +1,5 @@
 package org.example.eventpro.entity.enums;
 
-public enum StatusEvenement {
+public enum EventStatus {
     DRAFT, PUBLISHED, COMPLETED, CANCELLED
 }

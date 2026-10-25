@@ -1,5 +1,5 @@
 package org.example.eventpro.entity.enums;
 
-public enum StatutPaiement {
+public enum PaymentStatus {
     PENDING, SUCCESS, FAILED
 }
