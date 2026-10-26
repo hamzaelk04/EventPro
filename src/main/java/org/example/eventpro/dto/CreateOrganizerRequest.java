@@ -10,7 +10,7 @@ public class CreateOrganizerRequest {
 
     @NotBlank(message = "Le nom est obligatoire")
     @Size(max = 100, message = "Le nom ne doit pas dépasser 100 caractères")
-    private String nom;
+    private String name;
 
     @NotBlank(message = "L'email est obligatoire")
     @Email(message = "Format d'email invalide")
