@@ -5,11 +5,15 @@ import lombok.*;
 import org.example.eventpro.entity.enums.EventStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "events")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Event {
     @Id
@@ -45,7 +49,20 @@ public class Event {
     @JoinColumn(name = "organizer_id")
     private Organizer organizer;
 
-//    Add category
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<TicketCategory> categories = new ArrayList<>();
+
+    //    Add category
+    public void addTicketCategory(TicketCategory ticketCategory) {
+        categories.add(ticketCategory);
+        ticketCategory.setEvent(this);
+    }
+
 //    publier
-//    annuler
+
+    //    annuler
+    public void cancel() {
+        this.status = EventStatus.CANCELLED;
+    }
 }

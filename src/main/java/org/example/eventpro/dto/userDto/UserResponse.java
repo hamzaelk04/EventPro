@@ -1,4 +1,4 @@
-package org.example.eventpro.dto;
+package org.example.eventpro.dto.userDto;
 
 import lombok.*;
 import org.example.eventpro.dto.enums.Role;

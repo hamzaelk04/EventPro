@@ -1,6 +1,6 @@
 package org.example.eventpro.mapper;
 
-import org.example.eventpro.dto.*;
+import org.example.eventpro.dto.userDto.*;
 import org.example.eventpro.entity.*;
 
 import org.example.eventpro.entity.abstracts.User;

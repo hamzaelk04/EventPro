@@ -1,4 +1,4 @@
-package org.example.eventpro.dto;
+package org.example.eventpro.dto.userDto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;

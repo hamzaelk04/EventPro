@@ -1,8 +1,8 @@
 package org.example.eventpro.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.eventpro.dto.*;
 import org.example.eventpro.dto.enums.Role;
+import org.example.eventpro.dto.userDto.*;
 import org.example.eventpro.entity.*;
 import org.example.eventpro.entity.abstracts.User;
 import org.example.eventpro.exception.EmailAlreadyUsedException;

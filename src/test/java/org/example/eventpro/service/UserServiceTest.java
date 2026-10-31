@@ -1,14 +1,14 @@
 package org.example.eventpro.service;
 
-import org.example.eventpro.dto.CreateAgentRequest;
-import org.example.eventpro.dto.CreateClientRequest;
-import org.example.eventpro.dto.CreateOrganizerRequest;
-import org.example.eventpro.dto.UserResponse;
+import org.example.eventpro.dto.userDto.*;
 import org.example.eventpro.dto.enums.Role;
+import org.example.eventpro.entity.Admin;
 import org.example.eventpro.entity.Client;
 import org.example.eventpro.entity.Organizer;
+import org.example.eventpro.entity.abstracts.User;
 import org.example.eventpro.exception.EmailAlreadyUsedException;
 import org.example.eventpro.exception.ResourceNotFoundException;
+import org.example.eventpro.exception.ValidationException;
 import org.example.eventpro.mapper.UserMapperImpl;
 import org.example.eventpro.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -123,5 +127,120 @@ public class UserServiceTest {
                 .isInstanceOf(EmailAlreadyUsedException.class);
 
         verify(agentControlRepository, never()).save(any());
+    }
+
+    //    =====READ
+    @Test
+    @DisplayName("getById: unknown id throws ResourceNotFoundException")
+    void getById_notFound_throws() {
+        UUID fixedId = UUID.randomUUID();
+        when(userRepository.findById(fixedId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getById(fixedId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining(fixedId.toString());
+    }
+
+    @Test
+    @DisplayName("getById: returns the right role for each entity type")
+    void getById_returnsRole() {
+        UUID fixedId = UUID.randomUUID();
+
+        Admin admin = Admin.builder().id(fixedId).name("Admin").email("admin@events.ma").build();
+        when(userRepository.findById(fixedId)).thenReturn(Optional.of(admin));
+
+        UserResponse response = userService.getById(fixedId);
+
+        assertThat(response.getRole()).isEqualTo(Role.ADMIN);
+        assertThat(response.getEmail()).isEqualTo("admin@events.ma");
+    }
+
+    @Test
+    @DisplayName("getClientEntity: an id that is not a client throws ResourceNotFoundException")
+    void getClientEntity_notAClient_throws() {
+        UUID fixedId = UUID.randomUUID();
+
+        when(clientRepository.findById(fixedId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getClientEntity(fixedId))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    //    ========== List ======
+    @Test
+    @DisplayName("list: without role uses UserRepository, negative page becomes 0, size is capped at 100")
+    void list_noRole_clampsPaging() {
+        Client client = Client.builder().id(UUID.randomUUID()).name("A").email("a@x.ma").build();
+        Page<User> page = new PageImpl<>(List.<User>of(client));
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(page);
+
+        PageResponse<UserResponse> result = userService.list(null, -5, 1000);
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(userRepository).findAll(captor.capture());
+        assertThat(captor.getValue().getPageNumber()).isZero();
+        assertThat(captor.getValue().getPageSize()).isEqualTo(100);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getRole()).isEqualTo(Role.CLIENT);
+    }
+
+    @Test
+    @DisplayName("list: with role CLIENT only the client repository is queried")
+    void list_roleClient_usesClientRepository() {
+        Client client = Client.builder().id(UUID.randomUUID()).name("A").email("a@x.ma").build();
+        Page<Client> page = new PageImpl<>(List.of(client));
+        when(clientRepository.findAll(any(Pageable.class))).thenReturn(page);
+
+        PageResponse<UserResponse> result = userService.list(Role.CLIENT, 0, 20);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verifyNoInteractions(userRepository);
+    }
+
+    // ======================= UPDATE =======================
+
+    @Test
+    @DisplayName("update client: name and phone change, email and id do not")
+    void update_client_success() {
+        UUID fixedId = UUID.randomUUID();
+        Client client = Client.builder()
+                .id(fixedId).name("Old").email("old@mail.com").phone("0600000000").build();
+        when(userRepository.findById(fixedId)).thenReturn(Optional.of(client));
+        UpdateUserRequest request = UpdateUserRequest.builder()
+                .name("  New Name ").phone("0611111111").build();
+
+        UserResponse response = userService.update(fixedId, request);
+
+        assertThat(response.getName()).isEqualTo("New Name");
+        assertThat(response.getPhone()).isEqualTo("0611111111");
+        assertThat(response.getEmail()).isEqualTo("old@mail.com");
+        assertThat(response.getId()).isEqualTo(fixedId);
+    }
+
+    @Test
+    @DisplayName("update client: no phone in the request clears it (PUT = full replacement)")
+    void update_client_withoutPhone_clearsPhone() {
+        UUID fixedId = UUID.randomUUID();
+        Client client = Client.builder()
+                .id(fixedId).name("Old").email("old@mail.com").phone("0600000000").build();
+        when(userRepository.findById(fixedId)).thenReturn(Optional.of(client));
+
+        UserResponse response = userService.update(fixedId, UpdateUserRequest.builder().name("Old").build());
+
+        assertThat(response.getPhone()).isNull();
+    }
+
+    @Test
+    @DisplayName("update client: nameOrganisation is rejected")
+    void update_client_withOrganization_throws() {
+        UUID fixedId = UUID.randomUUID();
+        Client client = Client.builder().id(fixedId).name("A").email("a@x.ma").build();
+        when(userRepository.findById(fixedId)).thenReturn(Optional.of(client));
+        UpdateUserRequest request = UpdateUserRequest.builder()
+                .name("A").organizationName("Atlas").build();
+
+        assertThatThrownBy(() -> userService.update(fixedId, request))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("organizationName");
     }
 }
