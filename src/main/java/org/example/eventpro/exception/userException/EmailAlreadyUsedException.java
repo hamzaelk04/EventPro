@@ -1,4 +1,4 @@
-package org.example.eventpro.exception;
+package org.example.eventpro.exception.userException;
 
 public class EmailAlreadyUsedException extends RuntimeException {
     public EmailAlreadyUsedException(String email) {

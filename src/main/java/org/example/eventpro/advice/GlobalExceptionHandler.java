@@ -1,8 +1,11 @@
 package org.example.eventpro.advice;
 
-import org.example.eventpro.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.example.eventpro.exception.eventException.InvalidEventStateException;
+import org.example.eventpro.exception.userException.EmailAlreadyUsedException;
+import org.example.eventpro.exception.userException.ResourceNotFoundException;
+import org.example.eventpro.exception.userException.ValidationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -77,6 +80,12 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST,
                 "Corps de requête illisible ou mal formé", request, null);
+    }
+
+    @ExceptionHandler(InvalidEventStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidEventState(
+            InvalidEventStateException ex, HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request, null);
     }
 
     // ---------- helper ----------

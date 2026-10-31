@@ -1,4 +1,4 @@
-package org.example.eventpro.exception;
+package org.example.eventpro.exception.userException;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {
