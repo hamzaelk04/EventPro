@@ -31,31 +31,26 @@ public class Reservation {
     @Builder.Default
     private ReservationStatus status = ReservationStatus.PENDING_PAYMENT;
 
-    @Column(precision = 12, scale = 2)
-    private BigDecimal subtotal;
-
-    @Column(name = "discount_amount", precision = 12, scale = 2)
-    private BigDecimal discountAmount;
-
-    @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
+    @Column(precision = 12, scale = 2, nullable = false)
     @Builder.Default
-    private BigDecimal totalAmount = BigDecimal.ZERO;
+    private BigDecimal subTotal = BigDecimal.ZERO;
+
+    @Column(name = "discount_amount", precision = 12, scale = 2, nullable = false)
+    @Builder.Default
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_id")
     private Client client;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "promotion_id")
-    private Promotion promotion;
 
 //    cascade, orphanRemoval
     @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ReservationLine> reservationLines = new ArrayList<>();
 
-    @OneToOne(mappedBy = "reservation")
-    private Payment payments;
+    @OneToMany(mappedBy = "reservation")
+    @Builder.Default
+    private List<Payment> payments = new ArrayList<>();
 
 //    Ajouter une ligne
     public void addLine(ReservationLine line) {

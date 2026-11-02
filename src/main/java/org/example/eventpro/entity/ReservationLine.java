@@ -5,6 +5,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Entity
 @Table(name = "reservation_lines")
@@ -23,15 +24,24 @@ public class ReservationLine {
     private BigDecimal unitPrice;
 
     @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal subTotal;
+    @Builder.Default
+    private BigDecimal subTotal = BigDecimal.ZERO;
+
+    @Column(name = "discount_amount", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "categorie_id")
+    @JoinColumn(name = "ticket_category_id")
     private TicketCategory category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promotion_id")
+    private Promotion promotion;
 
     @OneToMany(mappedBy = "reservationLine")
     @Builder.Default

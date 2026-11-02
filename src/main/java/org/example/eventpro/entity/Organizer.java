@@ -22,9 +22,4 @@ public class Organizer extends User {
     @OneToMany(mappedBy = "organizer")
     @Builder.Default
     private List<Event> events = new ArrayList<>();
-
-    @OneToMany(mappedBy = "organizer")
-    @Builder.Default
-    private List<Promotion> promotions = new ArrayList<>();
-
 }

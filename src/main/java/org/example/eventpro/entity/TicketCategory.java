@@ -32,6 +32,7 @@ public class TicketCategory {
     @Builder.Default
     private int soldPlaces = 0;
 
+    @Column(name = "quota_max_per_client")
     private Integer quotaMaxPerClient;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

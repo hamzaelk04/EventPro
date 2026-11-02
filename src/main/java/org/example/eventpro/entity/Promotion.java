@@ -11,13 +11,12 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-
 public class Promotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String code;
 
     @Enumerated(EnumType.STRING)
@@ -27,21 +26,25 @@ public class Promotion {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal reductionValue;
 
+    @Column(nullable = false)
     private LocalDateTime startDate;
+
+    @Column(nullable = false)
     private LocalDateTime endDate;
 
-    private Integer limitUse;
+    @Column(nullable = false)
+    private Integer usageLimit;
 
     @Column(nullable = false)
     @Builder.Default
-    private int numberUse = 0;
+    private int usageCount = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizer_id", nullable = false)
-    private Organizer organizer;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ticket_category_id", nullable = false)
+    private TicketCategory ticketCategory;
 
-    public void increamentNumberUse() {
-        numberUse++;
+    public void incrementUsage() {
+        usageCount++;
     }
 
 //    est validee

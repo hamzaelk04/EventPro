@@ -35,13 +35,13 @@ public class Payment {
     @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "reservation_id")
     private Reservation reservation;
 
     @OneToMany(mappedBy = "payment")
     @Builder.Default
-    private List<Refund> refaunds = new ArrayList<>();
+    private List<Refund> refunds = new ArrayList<>();
 
 //    Payer
 //    refaund

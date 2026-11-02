@@ -18,7 +18,6 @@ public interface UserMapper {
     @BeanMapping(builder = @Builder(disableBuilder = true))
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "events", ignore = true)
-    @Mapping(target = "promotions", ignore = true)
     Organizer toEntity(CreateOrganizerRequest request);
 
     @BeanMapping(builder = @Builder(disableBuilder = true))
@@ -62,7 +61,6 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "events", ignore = true)
-    @Mapping(target = "promotions", ignore = true)
     void updateOrganizer(UpdateUserRequest request, @MappingTarget Organizer organizer);
 
     @Mapping(target = "id", ignore = true)
