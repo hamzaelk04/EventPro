@@ -37,7 +37,7 @@ public class Event {
     @Column(name = "sale_opening_date")
     private LocalDateTime saleOpeningDate;
 
-    @Column(name = "sale_colisng_date")
+    @Column(name = "sale_closing_date")
     private LocalDateTime saleClosingDate;
 
     @Enumerated(EnumType.STRING)

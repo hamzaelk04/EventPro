@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "refaunds")
+@Table(name = "refunds")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class Refaund {
+public class Refund {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

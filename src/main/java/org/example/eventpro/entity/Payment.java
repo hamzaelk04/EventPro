@@ -41,7 +41,7 @@ public class Payment {
 
     @OneToMany(mappedBy = "payment")
     @Builder.Default
-    private List<Refaund> refaunds = new ArrayList<>();
+    private List<Refund> refaunds = new ArrayList<>();
 
 //    Payer
 //    refaund
