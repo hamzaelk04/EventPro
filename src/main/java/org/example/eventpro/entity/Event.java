@@ -59,6 +59,12 @@ public class Event {
         ticketCategory.setEvent(this);
     }
 
+    // Delete category
+    public void deleteCategory(TicketCategory ticketCategory) {
+        categories.remove(ticketCategory);
+        ticketCategory.setEvent(this);
+    }
+
 //    publier
 
     //    annuler
