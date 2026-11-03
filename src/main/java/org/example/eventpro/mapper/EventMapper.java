@@ -1,8 +1,6 @@
 package org.example.eventpro.mapper;
 
 import org.example.eventpro.dto.eventDto.*;
-import org.example.eventpro.dto.ticketCategoryDto.TicketCategoryRequest;
-import org.example.eventpro.dto.ticketCategoryDto.TicketCategoryResponse;
 import org.example.eventpro.entity.Event;
 import org.example.eventpro.entity.TicketCategory;
 import org.mapstruct.*;
@@ -11,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = TicketCategoryMapper.class)
 public interface EventMapper {
     @BeanMapping(builder = @Builder(disableBuilder = true))
     @Mapping(target = "id", ignore = true)
@@ -19,17 +17,6 @@ public interface EventMapper {
     @Mapping(target = "organizer", ignore = true)
     @Mapping(target = "categories", ignore = true)
     Event toEntity(EventCreateRequest request);
-
-    @BeanMapping(builder = @Builder(disableBuilder = true))
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "event", ignore = true)
-    @Mapping(target = "reservedPlaces", ignore = true)
-    @Mapping(target = "soldPlaces", ignore = true)
-    @Mapping(source = "name", target = "name")
-    @Mapping(source = "unitPrice", target = "unitPrice")
-    @Mapping(source = "totalQuantity", target = "totalQuantity")
-    @Mapping(source = "quotaMaxPerClient", target = "quotaMaxPerClient")
-    TicketCategory toEntity(TicketCategoryRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
@@ -39,9 +26,6 @@ public interface EventMapper {
 
     @Mapping(source = "organizer.id", target = "organizerId")
     EventResponse toResponse(Event event);
-
-    @Mapping(target = "availablePlaces", expression = "java(availablePlaces(category))")
-    TicketCategoryResponse toCategoryResponse(TicketCategory category);
 
     default EventSummaryResponse toSummary(Event event) {
         List<TicketCategory> categories = event.getCategories();
