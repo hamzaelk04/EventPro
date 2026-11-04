@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -126,10 +127,14 @@ public class TicketCategoryService {
     }
 
     private void ensureEventAcceptsCategoryChanges(Event event) {
-        if (event.getStatus() != EventStatus.DRAFT && event.getStatus() != EventStatus.PUBLISHED) {
+
+        if (event.getStatus() == EventStatus.COMPLETED || event.getStatus() == EventStatus.CANCELLED) {
             throw new InvalidEventStateException(
-                    "Les catégories ne peuvent plus être modifiées pour un événement au statut " + event.getStatus()
-            );
+                    "Les catégories ne peuvent plus être modifiées pour un événement au statut " + event.getStatus());
+        }
+        if (event.getStatus() == EventStatus.PUBLISHED && !event.getStartDate().isAfter(LocalDateTime.now())) {
+            throw new InvalidEventStateException(
+                    "Les catégories ne peuvent plus être modifiées : l'événement a déjà commencé");
         }
     }
 

@@ -60,9 +60,9 @@ public class Event {
     }
 
     // Delete category
-    public void deleteCategory(TicketCategory ticketCategory) {
+    public void removeCategory(TicketCategory ticketCategory) {
         categories.remove(ticketCategory);
-        ticketCategory.setEvent(this);
+        ticketCategory.setEvent(null);
     }
 
 //    publier

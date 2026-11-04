@@ -12,6 +12,7 @@ import org.example.eventpro.exception.eventException.InvalidEventStateException;
 import org.example.eventpro.exception.userException.ResourceNotFoundException;
 import org.example.eventpro.exception.userException.ValidationException;
 import org.example.eventpro.mapper.EventMapper;
+import org.example.eventpro.mapper.TicketCategoryMapper;
 import org.example.eventpro.repository.EventRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final UserService userService;
     private final EventMapper eventMapper;
+    private final TicketCategoryMapper ticketCategoryMapper;
 
     //    CREATE
     @Transactional
@@ -50,7 +52,7 @@ public class EventService {
         event.setTitle(request.getTitle().trim());
 
         for (TicketCategoryRequest categoryRequest : request.getCategories()) {
-            TicketCategory category = eventMapper.toEntity(categoryRequest);
+            TicketCategory category = ticketCategoryMapper.toEntity(categoryRequest);
             category.setName(categoryRequest.getName().trim());
             event.addTicketCategory(category);
         }
@@ -188,7 +190,7 @@ public class EventService {
     //    HELPERS
 
     private Event findOwnedOrThrow(Long eventId, UUID organizerId) {
-        return eventRepository.findByIdAndOrganizerId(organizerId, eventId)
+        return eventRepository.findByIdAndOrganizerId(eventId, organizerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Événement", eventId));
     }
 

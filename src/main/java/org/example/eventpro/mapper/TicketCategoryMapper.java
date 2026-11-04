@@ -15,7 +15,7 @@ public interface TicketCategoryMapper {
     @Mapping(target = "event", ignore = true)
     @Mapping(target = "reservedPlaces", ignore = true)
     @Mapping(target = "soldPlaces", ignore = true)
-    TicketCategory toEntity(TicketCategory request);
+    TicketCategory toEntity(TicketCategoryRequest request);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "event", ignore = true)
