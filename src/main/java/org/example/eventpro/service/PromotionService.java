@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -76,8 +77,43 @@ public class PromotionService {
         return promotionMapper.toResponse(promotion);
     }
 
+    @Transactional
+    public void delete(Long promotionId, UUID organizerId) {
+        Promotion promotion = findOwnedPromotion(promotionId, organizerId);
+
+        if (promotion.getUsageCount() > 0) throw new InvalidEventStateException(
+                "Une promotion déjà utilisée ne peut pas être supprimée");
+
+        promotionRepository.delete(promotion);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PromotionResponse> listByCategory(Long eventId, Long categoryId, UUID organizerId) {
+        TicketCategory category = getOwnedCategory(categoryId, organizerId);
+        if (!category.getEvent().getId().equals(eventId)) {
+            throw new ResourceNotFoundException("Catégorie", categoryId);
+        }
+        return promotionMapper.toResponseList(promotionRepository.findByTicketCategoryId(categoryId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<PromotionResponse> listByOrganizer(UUID organizerId) {
+        return promotionMapper.toResponseList(promotionRepository.findByTicketCategoryEventOrganizerId(organizerId));
+    }
+
+    @Transactional(readOnly = true)
+    public Promotion getPromotionEntity(Long id) {
+        return promotionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion", id));
+    }
+
 
 //    HELPERS
+    private Promotion findOwnedPromotion(Long promotionId, UUID organizerId) {
+        return promotionRepository.findByIdAndTicketCategoryEventOrganizerId(promotionId, organizerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion", promotionId));
+    }
+
     private TicketCategory getOwnedCategory(Long categoryId, UUID organizerId) {
         TicketCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Catégorie", categoryId));
