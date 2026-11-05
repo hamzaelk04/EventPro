@@ -25,5 +25,5 @@ public interface TicketCategoryRepository extends JpaRepository<TicketCategory, 
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM TicketCategory c WHERE c.id = :id")
-    Optional<TicketCategory> findByIdForUpdate(Long id);
+    Optional<TicketCategory> findByIdForUpdate(@Param("id") Long id);
 }
