@@ -12,13 +12,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
-    boolean existsByCodeIgnoreCase(String code);
+    boolean existsByTicketCategoryIdAndCodeIgnoreCase(Long categoryId, String code);
+
+    boolean existsByTicketCategoryIdAndCodeIgnoreCaseAndIdNot(Long categoryId, String code, Long id);
 
     Optional<Promotion> findByCodeIgnoreCase(String code); // Used in the reservation
 
     List<Promotion> findByTicketCategoryId(Long ticketCategoryId);
-
-    boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
 
     Optional<Promotion> findByIdAndTicketCategoryEventOrganizerId(Long id, UUID organizerId);
 
