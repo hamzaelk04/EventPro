@@ -48,6 +48,34 @@ public class PromotionService {
         return promotionMapper.toResponse(saved);
     }
 
+    @Transactional
+    public PromotionResponse update(Long promotionId, UUID organizerId, PromotionRequest request) {
+        Promotion promotion = promotionRepository.findByIdForUpdate(promotionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion", promotionId));
+
+        ensureOwner(promotion, organizerId, promotionId);
+        ensureEventAcceptsPromotionChanges(promotion.getTicketCategory().getEvent());
+        validateDates(request);
+        validateReduction(request);
+
+        String code = normalizeCode(request.getCode());
+
+        if (promotionRepository.existsByTicketCategoryIdAndCodeIgnoreCaseAndIdNot(promotion.getTicketCategory().getId(), code, promotionId)) {
+            throw new ValidationException("Le code promo « " + code + " » existe déjà pour cette catégorie");
+        }
+
+        if (request.getUsageLimit() < promotion.getUsageCount()) {
+            throw new InvalidEventStateException(
+                    "La limite d'utilisation ne peut pas être inférieure au nombre d'utilisations déjà effectuées ("
+                            + promotion.getUsageCount() + ")");
+        }
+
+        promotionMapper.updateEntity(request, promotion);
+        promotion.setCode(code);
+
+        return promotionMapper.toResponse(promotion);
+    }
+
 
 //    HELPERS
     private TicketCategory getOwnedCategory(Long categoryId, UUID organizerId) {
@@ -57,6 +85,12 @@ public class PromotionService {
         if (category.getEvent().getOrganizer().getId().equals(organizerId)) return category;
 
         throw new ResourceNotFoundException("Catégorie", categoryId);
+    }
+
+    private void ensureOwner(Promotion promotion, UUID organizerId, Long promotionId) {
+        UUID ownerId = promotion.getTicketCategory().getEvent().getOrganizer().getId();
+
+        if (!ownerId.equals(organizerId)) throw new ResourceNotFoundException("Promotion", promotionId);
     }
 
     private void ensureEventAcceptsPromotionChanges(Event event) {
