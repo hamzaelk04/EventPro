@@ -18,6 +18,10 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
 
     List<Promotion> findByTicketCategoryId(Long ticketCategoryId);
 
+    boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
+
+    Optional<Promotion> findByIdAndTicketCategoryEventOrganizerId(Long id, UUID organizerId);
+
     List<Promotion> findByTicketCategoryEventOrganizerId(UUID organizerId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
