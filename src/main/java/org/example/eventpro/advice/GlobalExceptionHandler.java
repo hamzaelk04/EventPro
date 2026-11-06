@@ -3,6 +3,9 @@ package org.example.eventpro.advice;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.example.eventpro.exception.eventException.InvalidEventStateException;
+import org.example.eventpro.exception.reservationException.InsufficientStockException;
+import org.example.eventpro.exception.reservationException.InvalidReservationStateException;
+import org.example.eventpro.exception.reservationException.ReservationExpiredException;
 import org.example.eventpro.exception.userException.EmailAlreadyUsedException;
 import org.example.eventpro.exception.userException.ResourceNotFoundException;
 import org.example.eventpro.exception.userException.ValidationException;
@@ -34,6 +37,21 @@ public class GlobalExceptionHandler {
             EmailAlreadyUsedException ex, HttpServletRequest request
     ) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request, null);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientStock(InsufficientStockException ex, HttpServletRequest r) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), r, null);
+    }
+
+    @ExceptionHandler(ReservationExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleReservationExpired(ReservationExpiredException ex, HttpServletRequest r) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), r, null);
+    }
+
+    @ExceptionHandler(InvalidReservationStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidReservationState(InvalidReservationStateException ex, HttpServletRequest r) {
+        return build(HttpStatus.CONFLICT, ex.getMessage(), r, null);
     }
 
     // ---------- 404 ----------
