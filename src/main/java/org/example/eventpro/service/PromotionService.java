@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventpro.dto.promotionDto.PromotionRequest;
 import org.example.eventpro.dto.promotionDto.PromotionResponse;
 import org.example.eventpro.entity.Event;
+import org.example.eventpro.entity.Organizer;
 import org.example.eventpro.entity.Promotion;
 import org.example.eventpro.entity.TicketCategory;
 import org.example.eventpro.entity.enums.EventStatus;
@@ -30,15 +31,16 @@ public class PromotionService {
     private final TicketCategoryRepository categoryRepository;
 
     @Transactional
-    public PromotionResponse create(UUID organizerId, PromotionRequest request) {
-        TicketCategory category = getOwnedCategory(request.getTicketCategoryId(), organizerId);
+    public PromotionResponse create(Long eventId, Long categoryId, UUID organizerId, PromotionRequest request) {
+        TicketCategory category = getOwnedCategory(eventId, categoryId, organizerId);
         ensureEventAcceptsPromotionChanges(category.getEvent());
         validateDates(request);
         validateReduction(request);
 
         String code = normalizeCode(request.getCode());
 
-        if (promotionRepository.existsByTicketCategoryIdAndCodeIgnoreCase(category.getId(), code)) throw new ValidationException("Le code promo « " + code + " » existe déjà");
+        if (promotionRepository.existsByTicketCategoryIdAndCodeIgnoreCase(categoryId, code))
+            throw new ValidationException("Le code promo « " + code + " » existe déjà");
 
         Promotion promotion = promotionMapper.toEntity(request);
         promotion.setCode(code);
@@ -50,18 +52,17 @@ public class PromotionService {
     }
 
     @Transactional
-    public PromotionResponse update(Long promotionId, UUID organizerId, PromotionRequest request) {
+    public PromotionResponse update(Long eventId, Long categoryId, Long promotionId, UUID organizerId,
+                                    PromotionRequest request) {
         Promotion promotion = promotionRepository.findByIdForUpdate(promotionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion", promotionId));
-
-        ensureOwner(promotion, organizerId, promotionId);
+        ensureBelongsTo(promotion, eventId, categoryId, organizerId);
         ensureEventAcceptsPromotionChanges(promotion.getTicketCategory().getEvent());
         validateDates(request);
         validateReduction(request);
 
         String code = normalizeCode(request.getCode());
-
-        if (promotionRepository.existsByTicketCategoryIdAndCodeIgnoreCaseAndIdNot(promotion.getTicketCategory().getId(), code, promotionId)) {
+        if (promotionRepository.existsByTicketCategoryIdAndCodeIgnoreCaseAndIdNot(categoryId, code, promotionId)) {
             throw new ValidationException("Le code promo « " + code + " » existe déjà pour cette catégorie");
         }
 
@@ -73,26 +74,26 @@ public class PromotionService {
 
         promotionMapper.updateEntity(request, promotion);
         promotion.setCode(code);
-
         return promotionMapper.toResponse(promotion);
     }
 
     @Transactional
-    public void delete(Long promotionId, UUID organizerId) {
-        Promotion promotion = findOwnedPromotion(promotionId, organizerId);
-
-        if (promotion.getUsageCount() > 0) throw new InvalidEventStateException(
-                "Une promotion déjà utilisée ne peut pas être supprimée");
-
+    public void delete(Long eventId, Long categoryId, Long promotionId, UUID organizerId) {
+        Promotion promotion = findOwnedPromotion(eventId, categoryId, promotionId, organizerId);
+        if (promotion.getUsageCount() > 0) {
+            throw new InvalidEventStateException("Une promotion déjà utilisée ne peut pas être supprimée");
+        }
         promotionRepository.delete(promotion);
     }
 
     @Transactional(readOnly = true)
+    public PromotionResponse getOwnedPromotion(Long eventId, Long categoryId, Long promotionId, UUID organizerId) {
+        return promotionMapper.toResponse(findOwnedPromotion(eventId, categoryId, promotionId, organizerId));
+    }
+
+    @Transactional(readOnly = true)
     public List<PromotionResponse> listByCategory(Long eventId, Long categoryId, UUID organizerId) {
-        TicketCategory category = getOwnedCategory(categoryId, organizerId);
-        if (!category.getEvent().getId().equals(eventId)) {
-            throw new ResourceNotFoundException("Catégorie", categoryId);
-        }
+        getOwnedCategory(eventId, categoryId, organizerId);
         return promotionMapper.toResponseList(promotionRepository.findByTicketCategoryId(categoryId));
     }
 
@@ -108,19 +109,34 @@ public class PromotionService {
     }
 
 
-//    HELPERS
-    private Promotion findOwnedPromotion(Long promotionId, UUID organizerId) {
-        return promotionRepository.findByIdAndTicketCategoryEventOrganizerId(promotionId, organizerId)
+    //    HELPERS
+    private Promotion findOwnedPromotion(Long eventId, Long categoryId, Long promotionId, UUID organizerId) {
+        Promotion promotion = promotionRepository.findByIdAndTicketCategoryEventOrganizerId(promotionId, organizerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion", promotionId));
+        ensureBelongsTo(promotion, eventId, categoryId, organizerId);
+        return promotion;
     }
 
-    private TicketCategory getOwnedCategory(Long categoryId, UUID organizerId) {
+    private TicketCategory getOwnedCategory(Long eventId, Long categoryId, UUID organizerId) {
         TicketCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Catégorie", categoryId));
 
-        if (category.getEvent().getOrganizer().getId().equals(organizerId)) return category;
+        Event event = category.getEvent();
+        Organizer organizer = category.getEvent().getOrganizer();
+
+        if (organizer.getId().equals(organizerId) && event.getId().equals(eventId)) return category;
 
         throw new ResourceNotFoundException("Catégorie", categoryId);
+    }
+
+    private void ensureBelongsTo(Promotion promotion, Long eventId, Long categoryId, UUID organizerId) {
+        TicketCategory category = promotion.getTicketCategory();
+        Event event = category.getEvent();
+        if (!category.getId().equals(categoryId)
+                || !event.getId().equals(eventId)
+                || !event.getOrganizer().getId().equals(organizerId)) {
+            throw new ResourceNotFoundException("Promotion", promotion.getId());
+        }
     }
 
     private void ensureOwner(Promotion promotion, UUID organizerId, Long promotionId) {

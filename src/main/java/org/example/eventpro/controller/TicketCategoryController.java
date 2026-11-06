@@ -32,7 +32,7 @@ public class TicketCategoryController {
 
         TicketCategoryResponse response = categoryService.add(eventId, organizerId, request);
 
-        URI location = URI.create("api/events/" + eventId + "/categories" + response.getId());
+        URI location = URI.create("api/events/" + eventId + "/categories/" + response.getId());
 
         return ResponseEntity.created(location).body(response);
     }

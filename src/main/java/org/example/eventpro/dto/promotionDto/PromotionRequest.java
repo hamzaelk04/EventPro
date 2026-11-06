@@ -30,7 +30,4 @@ public class PromotionRequest {
     @NotNull(message = "La limite d'utilisation est obligatoire")
     @Min(value = 1, message = "La limite d'utilisation doit être d'au moins 1")
     private Integer usageLimit;
-
-    @NotNull(message = "La catégorie de billet est obligatoire")
-    private Long ticketCategoryId;
 }
