@@ -48,6 +48,8 @@ public class Promotion {
         usageCount++;
     }
 
+    public void decrementUsage() { usageCount--; }
+
 //    est validee
     public boolean isValidAt() {
         LocalDateTime now = LocalDateTime.now();
