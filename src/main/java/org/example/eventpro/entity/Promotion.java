@@ -48,5 +48,14 @@ public class Promotion {
     }
 
 //    est validee
+    public boolean isValidAt() {
+        LocalDateTime now = LocalDateTime.now();
+        boolean inPeriod = (startDate == null || !now.isBefore(startDate))
+                && (endDate == null || !now.isAfter(endDate));
+
+        boolean limitOk = usageLimit == null || usageCount < usageLimit;
+
+        return inPeriod && limitOk;
+    }
 //    calculer reduction
 }
