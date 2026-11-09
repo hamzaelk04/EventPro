@@ -51,7 +51,16 @@ public class TicketCategory {
         reservedPlaces += quantity;
     }
 
-//  Libere reservation
-//    confirmer vente
-//    liberer vente
+    public void releaseReservation(int quantity) {
+        reservedPlaces -= quantity;
+    }
+
+    public void confirmSale(int quantity) {
+        reservedPlaces -= quantity;
+        soldPlaces += quantity;
+    }
+
+    public void releaseSale(int quantity) {
+        soldPlaces -= quantity;
+    }
 }
