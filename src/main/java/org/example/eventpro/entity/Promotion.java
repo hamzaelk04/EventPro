@@ -4,6 +4,7 @@ import org.example.eventpro.entity.enums.ReductionType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 @Entity
@@ -58,4 +59,11 @@ public class Promotion {
         return inPeriod && limitOk;
     }
 //    calculer reduction
+    public BigDecimal calculateDiscount(BigDecimal lineSubtotal) {
+        BigDecimal discount = (reductionType == ReductionType.PERCENTAGE)
+                ? lineSubtotal.multiply(reductionValue).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+                : reductionValue;
+
+        return discount.min(lineSubtotal).setScale(2, RoundingMode.HALF_UP);
+    }
 }
