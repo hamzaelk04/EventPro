@@ -2,15 +2,19 @@ package org.example.eventpro.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 @Entity
 @Table(name = "reservation_lines")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ReservationLine {
     @Id
@@ -47,11 +51,10 @@ public class ReservationLine {
     @Builder.Default
     private List<Ticket> tickets = new ArrayList<>();
 
-//    calculer subtotal
-    public BigDecimal calculateSubTotal() {
-        this.subTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-
-        return subTotal;
+    //    calculer subtotal
+    public void calculateSubTotal() {
+        this.subTotal = unitPrice.multiply(BigDecimal.valueOf(quantity))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     public void applyPromotion(Promotion promotion) {
