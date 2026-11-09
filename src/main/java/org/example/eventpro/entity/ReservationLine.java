@@ -53,4 +53,14 @@ public class ReservationLine {
 
         return subTotal;
     }
+
+    public void applyPromotion(Promotion promotion) {
+        this.promotion = promotion;
+
+        this.discountAmount = promotion.calculateDiscount(subTotal);
+    }
+
+    public BigDecimal totalAfterDiscount() {
+        return subTotal.subtract(discountAmount).max(BigDecimal.ZERO);
+    }
 }
