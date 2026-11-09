@@ -48,4 +48,9 @@ public class ReservationLine {
     private List<Ticket> tickets = new ArrayList<>();
 
 //    calculer subtotal
+    public BigDecimal calculateSubTotal() {
+        this.subTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+
+        return subTotal;
+    }
 }
